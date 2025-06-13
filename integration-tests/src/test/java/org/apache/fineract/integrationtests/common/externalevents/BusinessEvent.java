@@ -16,20 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.portfolio.loanaccount.service;
+package org.apache.fineract.integrationtests.common.externalevents;
 
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
-import org.apache.fineract.portfolio.loanaccount.domain.Loan;
-import org.apache.fineract.portfolio.loanaccount.domain.LoanTransaction;
-import org.springframework.lang.NonNull;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.fineract.infrastructure.event.external.service.validation.ExternalEventDTO;
 
-public interface LoanCapitalizedIncomeAmortizationProcessingService {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class BusinessEvent {
 
-    void processCapitalizedIncomeAmortizationOnLoanClosure(@NonNull Loan loan);
+    protected String type;
+    protected String businessDate;
 
-    void processCapitalizedIncomeAmortizationOnLoanChargeOff(@NonNull Loan loan, @NonNull LoanTransaction chargeOffTransaction);
+    public boolean verify(@NotNull ExternalEventDTO externalEvent, DateTimeFormatter formatter) {
+        var businessDate = LocalDate.parse(getBusinessDate(), formatter);
 
-    void processCapitalizedIncomeAmortizationOnLoanUndoChargeOff(@NonNull LoanTransaction loanTransaction);
-
-    void processCapitalizedIncomeAmortizationTillDate(@NonNull Loan loan, @NonNull LocalDate tillDate);
+        return Objects.equals(externalEvent.getType(), getType()) && Objects.equals(externalEvent.getBusinessDate(), businessDate);
+    }
 }

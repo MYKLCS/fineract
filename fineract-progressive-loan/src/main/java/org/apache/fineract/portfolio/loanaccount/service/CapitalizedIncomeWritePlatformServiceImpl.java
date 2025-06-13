@@ -34,6 +34,10 @@ import org.apache.fineract.infrastructure.core.domain.ExternalId;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.core.service.ExternalIdFactory;
 import org.apache.fineract.infrastructure.core.service.MathUtil;
+import org.apache.fineract.infrastructure.event.business.domain.loan.LoanBalanceChangedBusinessEvent;
+import org.apache.fineract.infrastructure.event.business.domain.loan.transaction.LoanCapitalizedIncomeAdjustmentTransactionCreatedBusinessEvent;
+import org.apache.fineract.infrastructure.event.business.domain.loan.transaction.LoanCapitalizedIncomeTransactionCreatedBusinessEvent;
+import org.apache.fineract.infrastructure.event.business.service.BusinessEventNotifierService;
 import org.apache.fineract.organisation.monetary.domain.Money;
 import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanCapitalizedIncomeBalance;
@@ -61,6 +65,7 @@ public class CapitalizedIncomeWritePlatformServiceImpl implements CapitalizedInc
     private final LoanCapitalizedIncomeBalanceRepository capitalizedIncomeBalanceRepository;
     private final ReprocessLoanTransactionsService reprocessLoanTransactionsService;
     private final LoanBalanceService loanBalanceService;
+    private final BusinessEventNotifierService businessEventNotifierService;
 
     @Transactional
     @Override
@@ -101,9 +106,15 @@ public class CapitalizedIncomeWritePlatformServiceImpl implements CapitalizedInc
         // Post journal entries
         journalEntryPoster.postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds);
 
+        businessEventNotifierService
+                .notifyPostBusinessEvent(new LoanCapitalizedIncomeTransactionCreatedBusinessEvent(capitalizedIncomeTransaction));
+        businessEventNotifierService.notifyPostBusinessEvent(new LoanBalanceChangedBusinessEvent(loan));
         return new CommandProcessingResultBuilder() //
                 .withEntityId(capitalizedIncomeTransaction.getId()) //
                 .withEntityExternalId(capitalizedIncomeTransaction.getExternalId()) //
+                .withOfficeId(loan.getOfficeId()) //
+                .withClientId(loan.getClientId()) //
+                .withLoanId(loan.getId()) //
                 .build();
     }
 
@@ -142,7 +153,6 @@ public class CapitalizedIncomeWritePlatformServiceImpl implements CapitalizedInc
         // Post journal entries
         journalEntryPoster.postJournalEntries(loan, existingTransactionIds, existingReversedTransactionIds);
 
-        // Accounting uses the original balance, balance update HAS TO HAPPEN AFTER postJournalEntries
         LoanCapitalizedIncomeBalance capitalizedIncomeBalance = capitalizedIncomeBalanceRepository.findByLoanIdAndLoanTransactionId(loanId,
                 capitalizedIncomeTransactionId);
         capitalizedIncomeBalance
@@ -151,9 +161,17 @@ public class CapitalizedIncomeWritePlatformServiceImpl implements CapitalizedInc
                 MathUtil.negativeToZero(capitalizedIncomeBalance.getUnrecognizedAmount().subtract(transactionAmount)));
         capitalizedIncomeBalanceRepository.save(capitalizedIncomeBalance);
 
-        return new CommandProcessingResultBuilder().withLoanId(loan.getId()).withLoanExternalId(loan.getExternalId())
-                .withEntityId(savedCapitalizedIncomeAdjustment.getId())
-                .withEntityExternalId(savedCapitalizedIncomeAdjustment.getExternalId()).build();
+        businessEventNotifierService.notifyPostBusinessEvent(
+                new LoanCapitalizedIncomeAdjustmentTransactionCreatedBusinessEvent(savedCapitalizedIncomeAdjustment));
+        businessEventNotifierService.notifyPostBusinessEvent(new LoanBalanceChangedBusinessEvent(loan));
+
+        return new CommandProcessingResultBuilder() //
+                .withEntityId(savedCapitalizedIncomeAdjustment.getId()) //
+                .withEntityExternalId(savedCapitalizedIncomeAdjustment.getExternalId()) //
+                .withOfficeId(loan.getOfficeId()) //
+                .withClientId(loan.getClientId()) //
+                .withLoanId(loan.getId()) //
+                .build();
     }
 
     private void recalculateLoanTransactions(Loan loan, LocalDate transactionDate, LoanTransaction transaction) {

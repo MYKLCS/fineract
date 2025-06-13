@@ -16,20 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.fineract.portfolio.loanaccount.service;
+package org.apache.fineract.infrastructure.event.business.domain.loan.transaction;
 
-import java.time.LocalDate;
-import org.apache.fineract.portfolio.loanaccount.domain.Loan;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTransaction;
-import org.springframework.lang.NonNull;
 
-public interface LoanCapitalizedIncomeAmortizationProcessingService {
+public class LoanCapitalizedIncomeTransactionCreatedBusinessEvent extends LoanTransactionBusinessEvent {
 
-    void processCapitalizedIncomeAmortizationOnLoanClosure(@NonNull Loan loan);
+    private static final String TYPE = "LoanCapitalizedIncomeTransactionCreatedBusinessEvent";
 
-    void processCapitalizedIncomeAmortizationOnLoanChargeOff(@NonNull Loan loan, @NonNull LoanTransaction chargeOffTransaction);
+    public LoanCapitalizedIncomeTransactionCreatedBusinessEvent(LoanTransaction value) {
+        super(value);
+    }
 
-    void processCapitalizedIncomeAmortizationOnLoanUndoChargeOff(@NonNull LoanTransaction loanTransaction);
-
-    void processCapitalizedIncomeAmortizationTillDate(@NonNull Loan loan, @NonNull LocalDate tillDate);
+    @Override
+    public String getType() {
+        return TYPE;
+    }
 }

@@ -138,8 +138,10 @@ import org.apache.fineract.test.messaging.event.loan.transaction.BulkBusinessEve
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanAccrualAdjustmentTransactionBusinessEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanAccrualTransactionCreatedBusinessEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanAdjustTransactionBusinessEvent;
+import org.apache.fineract.test.messaging.event.loan.transaction.LoanCapitalizedIncomeAdjustmentTransactionCreatedBusinessEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanCapitalizedIncomeAmortizationAdjustmentTransactionCreatedBusinessEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanCapitalizedIncomeAmortizationTransactionCreatedBusinessEvent;
+import org.apache.fineract.test.messaging.event.loan.transaction.LoanCapitalizedIncomeTransactionCreatedBusinessEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanChargeAdjustmentPostBusinessEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanChargeOffEvent;
 import org.apache.fineract.test.messaging.event.loan.transaction.LoanChargeOffUndoEvent;
@@ -1763,7 +1765,7 @@ public class LoanStepDef extends AbstractStepDef {
         final List<GetLoansLoanIdTransactions> transactions = loanDetailsResponse.body().getTransactions();
         final Optional<GetLoansLoanIdTransactions> transactionsMatch = transactions.stream()
                 .filter(t -> formatter.format(t.getDate()).equals(transactionDate) && t.getType().getCapitalizedIncomeAmortization())
-                .findFirst();
+                .reduce((one, two) -> two);
         if (transactionsMatch.isPresent()) {
             testContext().set(TestContextKey.LOAN_CAPITALIZED_INCOME_AMORTIZATION_ID, transactionsMatch.get().getId());
         }
@@ -4240,6 +4242,42 @@ public class LoanStepDef extends AbstractStepDef {
                 finalAmortizationTransactionId);
     }
 
+    @Then("LoanCapitalizedIncomeTransactionCreatedBusinessEvent is raised on {string}")
+    public void checkLoanCapitalizedIncomeTransactionCreatedBusinessEvent(final String date) throws IOException {
+        Response<PostLoansResponse> loanCreateResponse = testContext().get(TestContextKey.LOAN_CREATE_RESPONSE);
+        long loanId = loanCreateResponse.body().getLoanId();
+
+        Response<GetLoansLoanIdResponse> loanDetailsResponse = loansApi.retrieveLoan(loanId, false, "transactions", "", "").execute();
+        ErrorHelper.checkSuccessfulApiCall(loanDetailsResponse);
+
+        List<GetLoansLoanIdTransactions> transactions = loanDetailsResponse.body().getTransactions();
+        GetLoansLoanIdTransactions finalAmortizationTransaction = transactions.stream()
+                .filter(t -> date.equals(FORMATTER.format(t.getDate())) && "Capitalized Income".equals(t.getType().getValue())).findFirst()
+                .orElseThrow(() -> new IllegalStateException(String.format("No Capitalized Income transaction found on %s", date)));
+        Long finalAmortizationTransactionId = finalAmortizationTransaction.getId();
+
+        eventAssertion.assertEventRaised(LoanCapitalizedIncomeTransactionCreatedBusinessEvent.class, finalAmortizationTransactionId);
+    }
+
+    @Then("LoanCapitalizedIncomeAdjustmentTransactionCreatedBusinessEvent is raised on {string}")
+    public void checkLoanCapitalizedIncomeAdjustmentTransactionCreatedBusinessEvent(final String date) throws IOException {
+        Response<PostLoansResponse> loanCreateResponse = testContext().get(TestContextKey.LOAN_CREATE_RESPONSE);
+        long loanId = loanCreateResponse.body().getLoanId();
+
+        Response<GetLoansLoanIdResponse> loanDetailsResponse = loansApi.retrieveLoan(loanId, false, "transactions", "", "").execute();
+        ErrorHelper.checkSuccessfulApiCall(loanDetailsResponse);
+
+        List<GetLoansLoanIdTransactions> transactions = loanDetailsResponse.body().getTransactions();
+        GetLoansLoanIdTransactions finalAmortizationTransaction = transactions.stream()
+                .filter(t -> date.equals(FORMATTER.format(t.getDate())) && "Capitalized Income Adjustment".equals(t.getType().getValue()))
+                .findFirst().orElseThrow(
+                        () -> new IllegalStateException(String.format("No Capitalized Income Adjustment transaction found on %s", date)));
+        Long finalAmortizationTransactionId = finalAmortizationTransaction.getId();
+
+        eventAssertion.assertEventRaised(LoanCapitalizedIncomeAdjustmentTransactionCreatedBusinessEvent.class,
+                finalAmortizationTransactionId);
+    }
+
     @And("Admin adds capitalized income adjustment with {string} payment type to the loan on {string} with {string} EUR transaction amount")
     public void adminAddsCapitalizedIncomeAdjustmentToTheLoan(final String transactionPaymentType, final String transactionDate,
             final String amount) throws IOException {
@@ -4256,6 +4294,30 @@ public class LoanStepDef extends AbstractStepDef {
         final List<GetLoansLoanIdTransactions> transactions = loanDetailsResponse.body().getTransactions();
         final GetLoansLoanIdTransactions capitalizedIncomeTransaction = transactions.stream()
                 .filter(t -> "Capitalized Income".equals(t.getType().getValue())).findFirst()
+                .orElseThrow(() -> new IllegalStateException("No Capitalized Income transaction found for loan " + loanId));
+
+        final Response<PostLoansLoanIdTransactionsResponse> adjustmentResponse = adjustCapitalizedIncome(transactionPaymentType,
+                transactionDate, amount, capitalizedIncomeTransaction.getId());
+
+        testContext().set(TestContextKey.LOAN_CAPITALIZED_INCOME_ADJUSTMENT_RESPONSE, adjustmentResponse);
+        ErrorHelper.checkSuccessfulApiCall(adjustmentResponse);
+
+        log.info("Capitalized Income Adjustment created: Transaction ID {}", adjustmentResponse.body().getResourceId());
+    }
+
+    @And("Admin adds capitalized income adjustment with {string} payment type to the loan on {string} with {string} EUR trn amount with {string} date for capitalized income")
+    public void adminAddsCapitalizedIncomeAdjustmentToTheLoanWithCapitalizedIncomeDate(final String transactionPaymentType,
+            final String transactionDate, final String amount, final String capitalizedIncomeTrnsDate) throws IOException {
+        final Response<PostLoansResponse> loanResponse = testContext().get(TestContextKey.LOAN_CREATE_RESPONSE);
+        final long loanId = loanResponse.body().getLoanId();
+
+        final Response<GetLoansLoanIdResponse> loanDetailsResponse = loansApi.retrieveLoan(loanId, false, "transactions", "", "").execute();
+        ErrorHelper.checkSuccessfulApiCall(loanDetailsResponse);
+
+        final List<GetLoansLoanIdTransactions> transactions = loanDetailsResponse.body().getTransactions();
+        final GetLoansLoanIdTransactions capitalizedIncomeTransaction = transactions.stream()
+                .filter(t -> "Capitalized Income".equals(t.getType().getValue()))
+                .filter(t -> FORMATTER.format(t.getDate()).equals(capitalizedIncomeTrnsDate)).findFirst()
                 .orElseThrow(() -> new IllegalStateException("No Capitalized Income transaction found for loan " + loanId));
 
         final Response<PostLoansLoanIdTransactionsResponse> adjustmentResponse = adjustCapitalizedIncome(transactionPaymentType,
