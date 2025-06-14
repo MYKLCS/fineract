@@ -21,17 +21,17 @@ If you are interested in contributing to this project, but perhaps don't quite k
 REQUIREMENTS
 ============
 * `Java >= 21` (Azul Zulu JVM is tested by our CI on GitHub Actions)
-* MariaDB `11.5.2`
+* PostgreSQL `16.1`
 
 You can run the required version of the database server in a container, instead of having to install it, like this:
 
-    docker run --name mariadb-11.5 -p 3306:3306 -e MARIADB_ROOT_PASSWORD=mysql -d mariadb:11.5.2
+    docker run --name postgres-16 -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d postgres:16.1
 
 and stop and destroy it like this:
 
-    docker rm -f mariadb-11.5
+    docker rm -f postgres-16
 
-<br>Beware that this database container database keeps its state inside the container and not on the host filesystem.  It is lost when you destroy (rm) this container.  This is typically fine for development.  See [Caveats: Where to Store Data on the database container documentation](https://hub.docker.com/_/mariadb) re. how to make it persistent instead of ephemeral.<br>
+<br>Beware that this database container database keeps its state inside the container and not on the host filesystem.  It is lost when you destroy (rm) this container.  This is typically fine for development.  See [Caveats: Where to Store Data on the database container documentation](https://hub.docker.com/_/postgres) re. how to make it persistent instead of ephemeral.<br>
 
 Tomcat v10 is only required if you wish to deploy the Fineract WAR to a separate external servlet container.  Note that you do not require to install Tomcat to develop Fineract, or to run it in production if you use the self-contained JAR, which transparently embeds a servlet container using Spring Boot.  (Until FINERACT-730, Tomcat 7/8 were also supported, but now Tomcat 10 is required.)
 
@@ -61,6 +61,23 @@ If a previously used Fineract instance didn't run in UTC (backward compatibility
 
 __RECOMMENDATION__: you need to shift all dates in your database by the timezone offset that your Fineract instance used.
 
+<br>IMPORTANT: PostgreSQL is now the Default Database
+============
+
+**Fineract now defaults to PostgreSQL instead of MySQL/MariaDB.** The configuration has been updated to use PostgreSQL by default:
+
+* **Default Driver**: `org.postgresql.Driver`
+* **Default JDBC URL**: `jdbc:postgresql://localhost:5432/fineract_tenants`
+* **Default Username**: `postgres`
+* **Default Password**: `postgres`
+
+The HikariCP connection pool has been optimized for PostgreSQL with settings like:
+* Prepared statement caching with threshold of 5
+* Result set fetch size optimization
+* PostgreSQL-specific performance tuning
+
+All Docker Compose configurations and environment files have been updated to use PostgreSQL by default. The existing MySQL/MariaDB configurations remain available for backward compatibility.
+
 <br>INSTRUCTIONS: How to run for local development
 ============
 
@@ -74,7 +91,7 @@ Run the following commands:
 ============
 1. Clone the repository or download and extract the archive file to your local directory.
 2. Run `./gradlew clean bootJar` to build a modern cloud native fully self contained JAR file which will be created at `fineract-provider/build/libs` directory.
-3. As we are not allowed to include a JDBC driver in the built JAR, download a JDBC driver of your choice. For example: `wget https://dlm.mariadb.com/4174416/Connectors/java/connector-java-3.5.2/mariadb-java-client-3.5.2.jar`
+3. As we are not allowed to include a JDBC driver in the built JAR, download a JDBC driver of your choice. For PostgreSQL: `wget https://repo1.maven.org/maven2/org/postgresql/postgresql/42.7.3/postgresql-42.7.3.jar`
 4. Start the jar and pass the directory where you have downloaded the JDBC driver as loader.path, for example: `java -Dloader.path=. -jar fineract-provider/build/libs/fineract-provider.jar` (does not require external Tomcat)
 
 The tenants database connection details are configured [via environment variables (as with Docker container)](#instructions-to-run-using-docker-and-docker-compose), e.g. like this:
@@ -271,11 +288,8 @@ Now to run a new Fineract instance you can simply:
 
 https://hub.docker.com/r/apache/fineract has a pre-built container image of this project, built continuously.
 
-You must specify the MySQL tenants database JDBC URL by passing it to the `fineract` container via environment
-variables; please consult the [`docker-compose.yml`](docker-compose.yml) for exact details how to specify those.
-_(Note that in previous versions, the `mysqlserver` environment variable used at `docker build` time instead of at
-`docker run` time did something similar; this has changed in [FINERACT-773](https://issues.apache.org/jira/browse/FINERACT-773)),
-and the `mysqlserver` environment variable is now no longer supported.)_
+The PostgreSQL tenants database JDBC URL is now configured by default. You can specify custom database connection details by passing them to the `fineract` container via environment variables; please consult the [`docker-compose.yml`](docker-compose.yml) for exact details how to specify those.
+_(Note that the project now defaults to PostgreSQL instead of MySQL/MariaDB for better performance and compatibility.)_
 
 The logfiles and the Java Flight Recorder output are available in `PROJECT_ROOT/build/fineract/logs`. If you use IntelliJ then you can double-click on the `.jfr` file and open it with the IDE. You can also download Azul Mission Control from here https://www.azul.com/products/components/azul-mission-control/ to analyze the Java Flight Recorder file.
 

@@ -16,25 +16,20 @@
 # under the License.
 #
 
-version: "3.8"
 
-services:
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fineractpostgresql-initdb
+  labels:
+    app: fineract-server
+data:
+  init.sql: |
+    -- create databases
+    CREATE DATABASE fineract_tenants;
+    CREATE DATABASE fineract_default;
 
-  db:
-    extends:
-      file: ./config/docker/compose/postgresql.yml
-      service: postgresql
-
-  fineract:
-    extends:
-      file: ./config/docker/compose/fineract.yml
-      service: fineract
-    ports:
-      - "8443:8443"
-    depends_on:
-      db:
-        condition: service_healthy
-    env_file:
-      - ./config/docker/env/fineract.env
-      - ./config/docker/env/fineract-common.env
-      - ./config/docker/env/fineract-postgresql.env
+    -- create user and grant rights
+    CREATE USER fineract WITH PASSWORD 'postgres';
+    GRANT ALL PRIVILEGES ON DATABASE fineract_tenants TO fineract;
+    GRANT ALL PRIVILEGES ON DATABASE fineract_default TO fineract;

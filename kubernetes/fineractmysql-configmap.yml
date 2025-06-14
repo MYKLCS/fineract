@@ -16,6 +16,7 @@
 # under the License.
 #
 
+# DEPRECATED: This file is for legacy MariaDB/MySQL deployments only. Use fineractpostgresql-configmap.yml for PostgreSQL.
 
 apiVersion: v1
 kind: ConfigMap

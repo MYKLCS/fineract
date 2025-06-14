@@ -11,17 +11,17 @@
 
 |fineract.tenant.port
 |FINERACT_DEFAULT_TENANTDB_PORT
-|3306
+|5432
 |This property sets the port of the default tenant database.
 
 |fineract.tenant.username
 |FINERACT_DEFAULT_TENANTDB_UID
-|root
+|postgres
 |This property sets the username of the default tenant database.
 
 |fineract.tenant.password
 |FINERACT_DEFAULT_TENANTDB_PWD
-|mysql
+|postgres
 |This property sets the password of the default tenant database.
 
 |fineract.tenant.parameters
