@@ -21,7 +21,7 @@
 export FINERACT_NODE_ID="1"
 # NOTE: env vars prefixed "FINERACT_HIKARI_*" are used to configure the database connection pool
 export FINERACT_HIKARI_DRIVER_SOURCE_CLASS_NAME="org.postgresql.Driver"
-export FINERACT_HIKARI_JDBC_URL="jdbc:postgresql://fineractpostgres:5432/fineract_tenants"
+export FINERACT_HIKARI_JDBC_URL="jdbc:postgresql://postgres.internal:5432/fineract_tenants"
 export FINERACT_HIKARI_USERNAME="postgres"
 export FINERACT_HIKARI_PASSWORD="skdcnwauicn2ucnaecasdsajdnizucawencascdca"
 # ... following variables are optional; "application.properties" contains reasonable defaults (same as here)
@@ -38,7 +38,7 @@ export FINERACT_HIKARI_DS_PROPERTIES_PREPARED_STATEMENT_CACHE_SIZE_MIB="5"
 export FINERACT_HIKARI_DS_PROPERTIES_DEFAULT_ROW_FETCH_SIZE="1000"
 export FINERACT_HIKARI_DS_PROPERTIES_LOG_UNCLOSED_CONNECTIONS="true"
 # NOTE: env vars prefixed "FINERACT_DEFAULT_TENANTDB_*" are used to create the default tenant database
-export FINERACT_DEFAULT_TENANTDB_HOSTNAME="fineractpostgres"
+export FINERACT_DEFAULT_TENANTDB_HOSTNAME="postgres.internal"
 export FINERACT_DEFAULT_TENANTDB_PORT="5432"
 export FINERACT_DEFAULT_TENANTDB_UID="postgres"
 export FINERACT_DEFAULT_TENANTDB_PWD="skdcnwauicn2ucnaecasdsajdnizucawencascdca"

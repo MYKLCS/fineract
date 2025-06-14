@@ -129,7 +129,7 @@ public class DataSourcePerTenantServiceFactoryTest {
         DatabaseMetaData databaseMetaData = mock(DatabaseMetaData.class);
         given(connection.getMetaData()).willReturn(databaseMetaData);
 
-        given(databaseMetaData.getURL()).willReturn("jdbc:postgresql://localhost:5432/fineract_tenants");
+        given(databaseMetaData.getURL()).willReturn("jdbc:postgresql://postgres.internal:5432/fineract_tenants");
 
         given(tenantConnection.getSchemaServer()).willReturn(MASTER_DB_SERVER);
         given(tenantConnection.getSchemaServerPort()).willReturn(MASTER_DB_SERVER_PORT);
