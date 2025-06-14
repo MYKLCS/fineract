@@ -83,6 +83,20 @@ spec:
         env:
         - name: FINERACT_NODE_ID
           value: '1'
+        # Primary database connection configuration
+        - name: DB_URL
+          value: jdbc:postgresql://fineractpostgresql:5432/fineract_tenants
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: fineract-tenants-db-secret
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fineract-tenants-db-secret
+              key: password
+        # Legacy environment variables for backward compatibility
         - name: FINERACT_HIKARI_DRIVER_CLASS_NAME
           value: org.postgresql.Driver
         - name: FINERACT_HIKARI_JDBC_URL

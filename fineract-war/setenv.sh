@@ -19,7 +19,18 @@
 
 # NOTE: drop this file into your Tomcat bin folder and use it to tweak your configuration in a WAR deployment
 export FINERACT_NODE_ID="1"
-# NOTE: env vars prefixed "FINERACT_HIKARI_*" are used to configure the database connection pool
+# NOTE: Primary database connection configuration from environment
+export DB_URL="${DB_URL}"
+export DB_USER="${DB_USER}"
+export DB_PASSWORD="${DB_PASSWORD}"
+
+# NOTE: Tenant database configuration from environment
+export FINERACT_DEFAULT_TENANTDB_HOSTNAME="${FINERACT_DEFAULT_TENANTDB_HOSTNAME}"
+export FINERACT_DEFAULT_TENANTDB_PORT="${FINERACT_DEFAULT_TENANTDB_PORT}"
+export FINERACT_DEFAULT_TENANTDB_UID="${FINERACT_DEFAULT_TENANTDB_UID}"
+export FINERACT_DEFAULT_TENANTDB_PWD="${FINERACT_DEFAULT_TENANTDB_PWD}"
+
+# NOTE: Legacy env vars for backward compatibility
 export FINERACT_HIKARI_DRIVER_SOURCE_CLASS_NAME="org.postgresql.Driver"
 export FINERACT_HIKARI_JDBC_URL="jdbc:postgresql://postgres.internal:5432/fineract_tenants"
 export FINERACT_HIKARI_USERNAME="postgres"

@@ -19,9 +19,10 @@
 
 package org.apache.fineract.infrastructure.core.config;
 
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,13 +30,41 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnExpression("#{ systemEnvironment['fineract_tenants_driver'] == null }")
 public class HikariCpConfig {
 
-    // TODO: we can get rid of this config class by defining "spring.hikariTenantDataSource.hikari.*" in
-    // "application.properties" and enabling auto-configuration
+    @Value("${DB_URL}")
+    private String jdbcUrl;
+
+    @Value("${DB_USER}")
+    private String username;
+
+    @Value("${DB_PASSWORD}")
+    private String password;
 
     // initMethod is triggering lazy initialization of Hikari pool
     @Bean(initMethod = "getConnection", destroyMethod = "close")
-    @ConfigurationProperties(prefix = "spring.datasource.hikari")
     public HikariDataSource hikariTenantDataSource() {
-        return new HikariDataSource();
+        HikariConfig config = new HikariConfig();
+        
+        // Set connection parameters from environment variables
+        config.setJdbcUrl(jdbcUrl);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setDriverClassName("org.postgresql.Driver");
+        
+        // Set connection pool settings
+        config.setMinimumIdle(3);
+        config.setMaximumPoolSize(10);
+        config.setIdleTimeout(60000);
+        config.setConnectionTimeout(20000);
+        config.setConnectionTestQuery("SELECT 1");
+        config.setAutoCommit(true);
+        
+        // PostgreSQL-specific optimizations
+        config.addDataSourceProperty("prepareThreshold", "5");
+        config.addDataSourceProperty("preparedStatementCacheQueries", "256");
+        config.addDataSourceProperty("preparedStatementCacheSizeMiB", "5");
+        config.addDataSourceProperty("defaultRowFetchSize", "1000");
+        config.addDataSourceProperty("logUnclosedConnections", "true");
+        
+        return new HikariDataSource(config);
     }
 }

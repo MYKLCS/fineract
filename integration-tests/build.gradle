@@ -63,7 +63,12 @@ cargo {
             }
             if (project.hasProperty('dbType')) {
                 if ('postgresql'.equalsIgnoreCase(dbType)) {
-                    jvmArgs += '-Dspring.datasource.hikari.driverClassName=org.postgresql.Driver -Dspring.datasource.hikari.jdbcUrl=jdbc:postgresql://localhost:5432/fineract_tenants -Dspring.datasource.hikari.username=root -Dspring.datasource.hikari.password=postgres -Dfineract.tenant.host=localhost -Dfineract.tenant.port=5432 -Dfineract.tenant.username=root -Dfineract.tenant.password=postgres'
+                    def dbUrl = System.getenv('DB_URL') ?: 'jdbc:postgresql://localhost:5432/fineract_tenants'
+                    def dbUser = System.getenv('DB_USER') ?: 'postgres'
+                    def dbPassword = System.getenv('DB_PASSWORD') ?: 'postgres'
+                    def dbHost = System.getenv('DB_HOST') ?: 'localhost'
+                    def dbPort = System.getenv('DB_PORT') ?: '5432'
+                    jvmArgs += "-Dspring.datasource.hikari.driverClassName=org.postgresql.Driver -Dspring.datasource.hikari.jdbcUrl=${dbUrl} -Dspring.datasource.hikari.username=${dbUser} -Dspring.datasource.hikari.password=${dbPassword} -Dfineract.tenant.host=${dbHost} -Dfineract.tenant.port=${dbPort} -Dfineract.tenant.username=${dbUser} -Dfineract.tenant.password=${dbPassword}"
                 } else if ('mysql'.equalsIgnoreCase(dbType)) {
                     jvmArgs += '-Dspring.datasource.hikari.driverClassName=com.mysql.cj.jdbc.Driver -Dspring.datasource.hikari.jdbcUrl=jdbc:mysql://localhost:3306/fineract_tenants -Dspring.datasource.hikari.username=root -Dspring.datasource.hikari.password=mysql -Dfineract.tenant.host=localhost -Dfineract.tenant.port=3306 -Dfineract.tenant.username=root -Dfineract.tenant.password=mysql'
                 } else {
