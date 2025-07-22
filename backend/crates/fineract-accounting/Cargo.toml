@@ -1,0 +1,39 @@
+[package]
+name = "fineract-accounting"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Accounting domain logic for Fineract"
+
+[dependencies]
+# Core
+fineract-core = { path = "../fineract-core" }
+fineract-db = { path = "../fineract-db" }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+futures = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Validation
+validator = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+fake = { workspace = true }
