@@ -1,0 +1,82 @@
+[package]
+name = "fineract-api"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "HTTP API server for Fineract"
+
+[[bin]]
+name = "fineract-api"
+path = "src/main.rs"
+
+[dependencies]
+# Core crates
+fineract-core = { path = "../fineract-core" }
+fineract-db = { path = "../fineract-db" }
+fineract-client = { path = "../fineract-client" }
+fineract-loan = { path = "../fineract-loan" }
+fineract-savings = { path = "../fineract-savings" }
+fineract-accounting = { path = "../fineract-accounting" }
+fineract-reporting = { path = "../fineract-reporting" }
+
+# Web framework
+axum = { workspace = true }
+tower = { workspace = true }
+tower-http = { workspace = true }
+hyper = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+futures = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+color-eyre = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+# Security
+argon2 = { workspace = true }
+jsonwebtoken = { workspace = true }
+rand = { workspace = true }
+
+# Configuration
+config = { workspace = true }
+dotenvy = { workspace = true }
+
+# Validation
+validator = { workspace = true }
+
+# HTTP client
+reqwest = { workspace = true }
+
+# Utilities
+once_cell = { workspace = true }
+bytes = { workspace = true }
+mime = { workspace = true }
+
+# Metrics
+metrics = { workspace = true }
+metrics-exporter-prometheus = { workspace = true }
+
+# OpenAPI
+utoipa = { workspace = true }
+utoipa-swagger-ui = { workspace = true }
+
+[dev-dependencies]
+testcontainers = { workspace = true }
+proptest = { workspace = true }
+fake = { workspace = true }

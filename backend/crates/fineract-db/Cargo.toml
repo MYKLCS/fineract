@@ -1,0 +1,45 @@
+[package]
+name = "fineract-db"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Database models and migrations for Fineract"
+
+[dependencies]
+# Core
+fineract-core = { path = "../fineract-core" }
+
+# Database
+diesel = { workspace = true }
+diesel-async = { workspace = true }
+deadpool-diesel = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+futures = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Configuration
+config = { workspace = true }
+dotenvy = { workspace = true }
+
+[dev-dependencies]
+testcontainers = { workspace = true }
+proptest = { workspace = true }
+fake = { workspace = true }

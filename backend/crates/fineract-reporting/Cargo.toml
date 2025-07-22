@@ -1,0 +1,43 @@
+[package]
+name = "fineract-reporting"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Reporting domain logic for Fineract"
+
+[dependencies]
+# Core
+fineract-core = { path = "../fineract-core" }
+fineract-db = { path = "../fineract-db" }
+fineract-client = { path = "../fineract-client" }
+fineract-loan = { path = "../fineract-loan" }
+fineract-savings = { path = "../fineract-savings" }
+fineract-accounting = { path = "../fineract-accounting" }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+# Error handling
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+
+# Async
+tokio = { workspace = true }
+futures = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Validation
+validator = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+fake = { workspace = true }
