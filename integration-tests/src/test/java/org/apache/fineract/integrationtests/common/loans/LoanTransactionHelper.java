@@ -68,6 +68,7 @@ import org.apache.fineract.client.models.GetLoansLoanIdTransactionsTemplateRespo
 import org.apache.fineract.client.models.GetLoansLoanIdTransactionsTransactionIdResponse;
 import org.apache.fineract.client.models.GetLoansResponse;
 import org.apache.fineract.client.models.InterestPauseRequestDto;
+import org.apache.fineract.client.models.LoanDeferredIncomeData;
 import org.apache.fineract.client.models.PaymentTypeData;
 import org.apache.fineract.client.models.PostAddAndDeleteDisbursementDetailRequest;
 import org.apache.fineract.client.models.PostLoanProductsRequest;
@@ -960,6 +961,36 @@ public class LoanTransactionHelper {
     public PostLoansLoanIdTransactionsResponse capitalizedIncomeAdjustment(final Long loanId, final Long capitalizedIncomeTransactionId,
             final String transactionDate, final double amount) {
         return capitalizedIncomeAdjustment(loanId, capitalizedIncomeTransactionId, new PostLoansLoanIdTransactionsTransactionIdRequest()
+                .transactionAmount(amount).transactionDate(transactionDate).dateFormat("dd MMMM yyyy").locale("en"));
+    }
+
+    public PostLoansLoanIdTransactionsResponse buyDownFeeAdjustment(final Long loanId, final Long buyDownFeeTransactionId,
+            final PostLoansLoanIdTransactionsTransactionIdRequest request) {
+        return Calls.ok(FineractClientHelper.getFineractClient().loanTransactions.adjustLoanTransaction(loanId, buyDownFeeTransactionId,
+                request, "buyDownFeeAdjustment"));
+    }
+
+    public PostLoansLoanIdTransactionsResponse buyDownFeeAdjustment(final String loanExternalId, final Long transactionId,
+            final PostLoansLoanIdTransactionsTransactionIdRequest request) {
+        return Calls.ok(FineractClientHelper.getFineractClient().loanTransactions.adjustLoanTransaction2(loanExternalId, transactionId,
+                request, "buyDownFeeAdjustment"));
+    }
+
+    public PostLoansLoanIdTransactionsResponse buyDownFeeAdjustment(final String loanExternalId, final String transactionExternalId,
+            final PostLoansLoanIdTransactionsTransactionIdRequest request) {
+        return Calls.ok(FineractClientHelper.getFineractClient().loanTransactions.adjustLoanTransaction3(loanExternalId,
+                transactionExternalId, request, "buyDownFeeAdjustment"));
+    }
+
+    public PostLoansLoanIdTransactionsResponse buyDownFeeAdjustment(final Long loanId, final String transactionExternalId,
+            final PostLoansLoanIdTransactionsTransactionIdRequest request) {
+        return Calls.ok(FineractClientHelper.getFineractClient().loanTransactions.adjustLoanTransaction1(loanId, transactionExternalId,
+                request, "buyDownFeeAdjustment"));
+    }
+
+    public PostLoansLoanIdTransactionsResponse buyDownFeeAdjustment(final Long loanId, final Long buyDownFeeTransactionId,
+            final String transactionDate, final double amount) {
+        return buyDownFeeAdjustment(loanId, buyDownFeeTransactionId, new PostLoansLoanIdTransactionsTransactionIdRequest()
                 .transactionAmount(amount).transactionDate(transactionDate).dateFormat("dd MMMM yyyy").locale("en"));
     }
 
@@ -3016,6 +3047,10 @@ public class LoanTransactionHelper {
                 .ok(FineractClientHelper.getFineractClient().loanTransactions.executeLoanTransaction(loanId, request, "undo-charge-off"));
     }
 
+    public LoanDeferredIncomeData fetchDeferredIncomeDetails(Long loanId) {
+        return Calls.ok(FineractClientHelper.getFineractClient().loanDeferredIncome.fetchDeferredIncomeDetails(loanId));
+    }
+
     // TODO: Rewrite to use fineract-client instead!
     // Example: org.apache.fineract.integrationtests.common.loans.LoanTransactionHelper.disburseLoan(java.lang.Long,
     // org.apache.fineract.client.models.PostLoansLoanIdRequest)
@@ -3047,6 +3082,15 @@ public class LoanTransactionHelper {
 
     public PostLoansLoanIdTransactionsResponse makeLoanDownPayment(Long loanId, PostLoansLoanIdTransactionsRequest request) {
         return Calls.ok(FineractClientHelper.getFineractClient().loanTransactions.executeLoanTransaction(loanId, request, "downPayment"));
+    }
+
+    public PostLoansLoanIdTransactionsResponse makeLoanBuyDownFee(Long loanId, PostLoansLoanIdTransactionsRequest request) {
+        return Calls.ok(FineractClientHelper.getFineractClient().loanTransactions.executeLoanTransaction(loanId, request, "buyDownFee"));
+    }
+
+    public PostLoansLoanIdTransactionsResponse makeLoanBuyDownFee(Long loanId, String date, double amount) {
+        return makeLoanBuyDownFee(loanId, new PostLoansLoanIdTransactionsRequest().dateFormat("dd MMMM yyyy").transactionDate(date)
+                .locale("en").transactionAmount(amount));
     }
 
     public List<AdvancedPaymentData> getAdvancedPaymentAllocationRules(final Integer loanId) {

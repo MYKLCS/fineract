@@ -21,10 +21,14 @@ package org.apache.fineract.portfolio.loanaccount.starter;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
 import org.apache.fineract.infrastructure.core.service.ExternalIdFactory;
 import org.apache.fineract.infrastructure.event.business.service.BusinessEventNotifierService;
+import org.apache.fineract.portfolio.loanaccount.domain.LoanLifecycleStateMachine;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanRepositoryWrapper;
 import org.apache.fineract.portfolio.loanaccount.domain.LoanTransactionRepository;
+import org.apache.fineract.portfolio.loanaccount.repository.LoanBuyDownFeeBalanceRepository;
 import org.apache.fineract.portfolio.loanaccount.repository.LoanCapitalizedIncomeBalanceRepository;
 import org.apache.fineract.portfolio.loanaccount.serialization.LoanTransactionValidator;
+import org.apache.fineract.portfolio.loanaccount.service.CapitalizedIncomeBalanceReadService;
+import org.apache.fineract.portfolio.loanaccount.service.CapitalizedIncomeBalanceReadServiceImpl;
 import org.apache.fineract.portfolio.loanaccount.service.CapitalizedIncomeBalanceService;
 import org.apache.fineract.portfolio.loanaccount.service.CapitalizedIncomeBalanceServiceImpl;
 import org.apache.fineract.portfolio.loanaccount.service.CapitalizedIncomePlatformService;
@@ -52,10 +56,11 @@ public class ProgressiveLoanAccountConfiguration {
             NoteWritePlatformService noteWritePlatformService, ExternalIdFactory externalIdFactory,
             LoanCapitalizedIncomeBalanceRepository capitalizedIncomeBalanceRepository,
             ReprocessLoanTransactionsService reprocessLoanTransactionsService, LoanBalanceService loanBalanceService,
-            BusinessEventNotifierService businessEventNotifierService) {
+            LoanLifecycleStateMachine loanLifecycleStateMachine, BusinessEventNotifierService businessEventNotifierService) {
         return new CapitalizedIncomeWritePlatformServiceImpl(loanTransactionValidator, loanAssembler, loanTransactionRepository,
                 paymentDetailWritePlatformService, journalEntryPoster, noteWritePlatformService, externalIdFactory,
-                capitalizedIncomeBalanceRepository, reprocessLoanTransactionsService, loanBalanceService, businessEventNotifierService);
+                capitalizedIncomeBalanceRepository, reprocessLoanTransactionsService, loanBalanceService, loanLifecycleStateMachine,
+                businessEventNotifierService);
     }
 
     @Bean
@@ -63,9 +68,9 @@ public class ProgressiveLoanAccountConfiguration {
     public ProgressiveLoanTransactionValidator progressiveLoanTransactionValidator(FromJsonHelper fromApiJsonHelper,
             LoanTransactionValidator loanTransactionValidator, LoanRepositoryWrapper loanRepositoryWrapper,
             LoanCapitalizedIncomeBalanceRepository loanCapitalizedIncomeBalanceRepository,
-            LoanTransactionRepository loanTransactionRepository) {
+            LoanBuyDownFeeBalanceRepository loanBuydownFeeBalanceRepository, LoanTransactionRepository loanTransactionRepository) {
         return new ProgressiveLoanTransactionValidatorImpl(fromApiJsonHelper, loanTransactionValidator, loanRepositoryWrapper,
-                loanCapitalizedIncomeBalanceRepository, loanTransactionRepository);
+                loanCapitalizedIncomeBalanceRepository, loanBuydownFeeBalanceRepository, loanTransactionRepository);
     }
 
     @Bean
@@ -73,5 +78,12 @@ public class ProgressiveLoanAccountConfiguration {
     public CapitalizedIncomeBalanceService capitalizedIncomeBalanceService(
             LoanCapitalizedIncomeBalanceRepository loanCapitalizedIncomeBalanceRepository) {
         return new CapitalizedIncomeBalanceServiceImpl(loanCapitalizedIncomeBalanceRepository);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(CapitalizedIncomeBalanceReadService.class)
+    public CapitalizedIncomeBalanceReadService capitalizedIncomeBalanceReadService(LoanRepositoryWrapper loanRepository,
+            LoanCapitalizedIncomeBalanceRepository loanCapitalizedIncomeBalanceRepository) {
+        return new CapitalizedIncomeBalanceReadServiceImpl(loanRepository, loanCapitalizedIncomeBalanceRepository);
     }
 }
